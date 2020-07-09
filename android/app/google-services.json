@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "666371721962",
+    "firebase_url": "https://ptruiz-mandarin.firebaseio.com",
+    "project_id": "ptruiz-mandarin",
+    "storage_bucket": "ptruiz-mandarin.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:666371721962:android:349ca9f116a9dd52cba593",
+        "android_client_info": {
+          "package_name": "com.ptruiz.language.mandarin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "666371721962-tvk5sm3a9586mv849c9t9fd6eappcdkv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRSOrVifampAEunRcUzZcv9dmogpzJFk4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "666371721962-tvk5sm3a9586mv849c9t9fd6eappcdkv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
