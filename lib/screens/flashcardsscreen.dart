@@ -1,13 +1,14 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 
+import 'package:mandarin/models/flashcardsarguments.dart';
+
 class FlashcardsScreen extends StatefulWidget {
   static const String routeName = '/flashcard_items';
-  const FlashcardsScreen({Key key } ) : super(key: key);
+  const FlashcardsScreen({Key key} ) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -22,16 +23,20 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
   AnimationController _animationController;
   Animation _animation;
   AnimationStatus _animationStatus = AnimationStatus.dismissed;
+  PageController _pageController;
+  Color color;
 
   @override
   void dispose() {
     _animationController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: 0);
     _animationController =
         AnimationController(vsync: this, duration: Duration(seconds: 1));
     _animation = Tween(end: 1.0, begin: 0.0).animate(_animationController)
@@ -53,7 +58,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
                 alignment: Alignment.center,
                 child: SizedBox(
                   height: 300,
-                  child: GestureDetector(
+                  child: Card( child: GestureDetector(
                     onTap: () {
                       if (_animationStatus == AnimationStatus.dismissed) {
                         _animationController.forward();
@@ -63,8 +68,8 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
                     },
                     child: _animation.value <= 0.5 ?
                     Container(
-                      child: Center( child: Text(key, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 64))),
-                      color: Colors.blueAccent,
+                      child: Center( child: Text(key, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 64))),
+                      color: color,
                     )
                     : Container(
                       child: Transform(transform: Matrix4.identity()
@@ -75,13 +80,22 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
                             future: (snapshot.data[key] as DocumentReference).get(),
                             builder:(context, answer) {
                               if( answer.hasData ) {
-                                return Text(answer.data['english']);
+                                return Padding(padding: EdgeInsets.all(24),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children:
+                                        [
+                                          Text("English: " + answer.data['english'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.white)),
+                                          Text("Pinyin: " + answer.data['pinyin'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.white )),
+                                        ]
+                                    ));
                               }
                               return Container();
                             })),
-                      color: Colors.redAccent,
+                      color: color,
                     )
-                  )
+                  ))
                 )
             )
           );
@@ -91,20 +105,50 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-    final DocumentReference ref = ModalRoute.of(context).settings.arguments;
+    FlashcardArguments arguments = ModalRoute.of(context).settings.arguments;
+    final DocumentReference ref = arguments.documentReference;
+    color = arguments.color;
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Firestore Example'),
+        title: const Text('中文课'),
+        backgroundColor: color,
       ),
       body: FutureBuilder<DocumentSnapshot>(
         future: ref.get(),
         builder:(context, snapshot) {
           if( snapshot.hasData ) {
-            return PageView(
-              children: getFlashcards(snapshot.data),
+            return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+              Flexible(
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32),
+                  child: FractionallySizedBox(
+                  heightFactor: 0.5,
+                  child: PageView(
+                    controller: _pageController,
+                    children: getFlashcards(snapshot.data),
+                      pageSnapping: true,
+                      //physics:new NeverScrollableScrollPhysics(),
+                      onPageChanged: (value) {
+                        //TODO make this better.
+                        //Read this https://medium.com/flutter-community/synchronising-widget-animations-with-the-scroll-of-a-pageview-in-flutter-2f3475fcffa3
+                        _animationController.duration = Duration(seconds: 0);
+                        _animationController.reverse();
+                        _animationController.duration = Duration(seconds: 1);
+                      },
+                    )
+                  )
+                )),
+              ),
+              ]
             );
           }
-          return CircularProgressIndicator();
+          return Center(
+              child: CircularProgressIndicator());
         },
       ),
     );

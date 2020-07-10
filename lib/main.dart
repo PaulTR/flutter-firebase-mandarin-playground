@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mandarin/models/flashcardsarguments.dart';
 import 'package:mandarin/models/section.dart';
 import 'package:mandarin/screens/flashcardsscreen.dart';
 
@@ -16,12 +17,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: MyHomePage(title: 'Flutter Demo Home Page'),
       routes: <String, WidgetBuilder> {
         '/home': (context) => MyHomePage(),
+        //TODO: Update to use animations while still passing arguments
         FlashcardsScreen.routeName: (BuildContext context) => FlashcardsScreen(),
       },
     );
@@ -41,9 +42,9 @@ class _MyHomePageState extends State<MyHomePage> {
   int _currentIndex = 0;
 
   List<Section> appSections = <Section> [
-    Section('Flash Cards', SectionType.flashcards, Colors.red[700], Icons.input),
-    Section('Dictionary', SectionType.dictionary, Colors.yellow[200], Icons.import_contacts),
-    Section('Item Matching', SectionType.matching, Colors.green[300], Icons.border_all)
+    Section('Flash Cards', SectionType.flashcards, Color.fromRGBO(222, 41, 16, 1.0), Icons.input),
+    Section('Dictionary', SectionType.dictionary, Color.fromRGBO(222, 41, 16, 1.0), Icons.import_contacts),
+    Section('Item Matching', SectionType.matching, Color.fromRGBO(222, 41, 16, 1.0), Icons.border_all)
   ];
 
   @override
@@ -69,9 +70,9 @@ class _MyHomePageState extends State<MyHomePage> {
         },
         items: appSections.map((Section section) {
           return BottomNavigationBarItem(
-              icon: Icon(section.icon),
+              icon: Icon(section.icon, color: Colors.white,),
               backgroundColor: section.color,
-              title: Text(section.title)
+              title: Text(section.title, style: TextStyle(color: Colors.white))
           );
         }).toList(),
       ),
@@ -125,7 +126,7 @@ class _SectionViewState extends State<SectionView> {
             clipBehavior: Clip.antiAlias,
             child: InkWell(
               onTap: () {
-                Navigator.pushNamed(context, FlashcardsScreen.routeName, arguments: document.data['items']);
+                Navigator.pushNamed(context, FlashcardsScreen.routeName, arguments: new FlashcardArguments(document.data['items'], section.color));
               },
               splashColor: section.color,
               child: Center(child: Text(document.documentID, style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold))),
