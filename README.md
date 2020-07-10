@@ -1,16 +1,21 @@
-# mandarin
+# Mandarin Chinese App
 
-A new Flutter application.
+App for trying out different things in Flutter + Firebase. Concept is around learning/practicing Mandarin Chinese from English
 
-## Getting Started
+## TODO
 
-This project is a starting point for a Flutter application.
+Firebase: 
+- Add analytics
+- Add crashlytics
+- Look into database structure, find more efficient way to structure items
+- Images that can match to sentences; pull examples from HSK practice exams
+- Audio playback for questions via HSK practice exams
 
-A few resources to get you started if this is your first Flutter project:
+Flutter:
+- Add page transitions with sent arguments
+- Add table for dictionary
+- Add matching page
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Ideas:
+- Look into audio recording to test against Google Cloud word translate - maybe speaking practice?
+- Writing practice. ML handwriting recognition?
