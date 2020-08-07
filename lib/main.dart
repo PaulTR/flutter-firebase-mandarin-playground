@@ -2,9 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:mandarin/models/flashcardsarguments.dart';
 import 'package:mandarin/models/section.dart';
 import 'package:mandarin/screens/flashcardsscreen.dart';
+import 'package:mandarin/screens/matchingscreen.dart';
+
+import 'models/screenarguments.dart';
+import 'screens/flashcardsscreen.dart';
 
 void main() async {
   await WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +27,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => MyHomePage(),
         //TODO: Update to use animations while still passing arguments
         FlashcardsScreen.routeName: (BuildContext context) => FlashcardsScreen(),
+        MatchingScreen.routeName: (BuildContext context) => MatchingScreen(),
       },
     );
   }
@@ -94,11 +98,13 @@ class SectionView extends StatefulWidget {
 
 class _SectionViewState extends State<SectionView> {
   final Firestore firestore = Firestore(app: FirebaseApp.instance);
-  CollectionReference get flashcards => firestore.collection('flashcards');
+  CollectionReference get categories => firestore.collection('categories');
 
   @override
   void initState() {
     super.initState();
+    //TODO add CACHE_SIZE_UNLIMITED value
+    firestore.settings(persistenceEnabled: true);
     switch( widget.section.type ) {
       case SectionType.flashcards: {
         break;
@@ -116,23 +122,24 @@ class _SectionViewState extends State<SectionView> {
     }
   }
 
-  List<Widget> getFlashcardSectionListItems(AsyncSnapshot<QuerySnapshot> snapshot, Section section) {
+  //TODO Rename flashcards to 'categories, combine into one method where route name is passed'
+  List<Widget> getSectionListItems(AsyncSnapshot<QuerySnapshot> snapshot, Section section, String route) {
     List<Widget> flashcardSectionListItems = new List<Widget>();
     for( DocumentSnapshot document in snapshot.data.documents ) {
       flashcardSectionListItems.add(
-        new SizedBox(
-          height: 100.0,
-            child: Card(
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: () {
-                Navigator.pushNamed(context, FlashcardsScreen.routeName, arguments: new FlashcardArguments(document.data['items'], section.color));
-              },
-              splashColor: section.color,
-              child: Center(child: Text(document.documentID, style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold))),
-            ),
+          new SizedBox(
+              height: 100.0,
+              child: Card(
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () {
+                    Navigator.pushNamed(context, route, arguments: new ScreenArguments(document.data['items'], section.color));
+                  },
+                  splashColor: section.color,
+                  child: Center(child: Text(document.documentID, style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold))),
+                ),
+              )
           )
-        )
       );
     }
     return flashcardSectionListItems;
@@ -142,11 +149,11 @@ class _SectionViewState extends State<SectionView> {
     switch( section.type ) {
       case SectionType.flashcards: {
         return FutureBuilder<QuerySnapshot>(
-          future: flashcards.getDocuments(),
+          future: categories.getDocuments(),
           builder:(context, snapshot) {
             if( snapshot.hasData ) {
               return ListView(
-                children: getFlashcardSectionListItems(snapshot, section),
+                children: getSectionListItems(snapshot, section, FlashcardsScreen.routeName),
               );
             }
             return CircularProgressIndicator();
@@ -158,7 +165,18 @@ class _SectionViewState extends State<SectionView> {
         return Image.network('https://fireflicks-io.firebaseapp.com/dist/Popcorn_Sparky.png?fff0508ec5db8e88e811030bc93a44a8');
       }
       case SectionType.matching: {
-        return Image.network('https://firebase.google.com/images/homepage/sparky_couchgamer_1x.png');
+        return FutureBuilder<QuerySnapshot>(
+          future: categories.getDocuments(),
+          builder:(context, snapshot) {
+            if( snapshot.hasData ) {
+              return ListView(
+                children: getSectionListItems(snapshot, section, MatchingScreen.routeName),
+              );
+            }
+            return CircularProgressIndicator();
+          },
+
+        );
       }
     }
   }

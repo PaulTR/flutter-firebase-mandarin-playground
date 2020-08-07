@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 
-import 'package:mandarin/models/flashcardsarguments.dart';
+import 'package:mandarin/models/screenarguments.dart';
 
 class FlashcardsScreen extends StatefulWidget {
   static const String routeName = '/flashcard_items';
@@ -12,7 +12,6 @@ class FlashcardsScreen extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    // TODO: implement createState
     return _FlashcardsScreenState();
   }
 }
@@ -48,9 +47,9 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
       });
   }
 
-  List<Widget> getFlashcards(DocumentSnapshot snapshot) {
+  List<Widget> getFlashcards(QuerySnapshot snapshot) {
     List<Widget> flashcardWidgets = new List<Widget>();
-      for( String key in snapshot.data.keys) {
+      for( DocumentSnapshot document in snapshot.documents) {
         flashcardWidgets.add(new Transform(
                 transform: Matrix4.identity()
                   ..setEntry(3, 2, 0.0)
@@ -68,7 +67,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
                     },
                     child: _animation.value <= 0.5 ?
                     Container(
-                      child: Center( child: Text(key, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 64))),
+                      child: Center( child: Text(document.data['zi'], style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 64))),
                       color: color,
                     )
                     : Container(
@@ -76,23 +75,17 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
                             ..setEntry(3, 2, 0.0)
                             ..rotateY(pi * _animation.value.toDouble()),
                             alignment: Alignment.center,
-                          child: FutureBuilder<DocumentSnapshot>(
-                            future: (snapshot.data[key] as DocumentReference).get(),
-                            builder:(context, answer) {
-                              if( answer.hasData ) {
-                                return Padding(padding: EdgeInsets.all(24),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children:
-                                        [
-                                          Text("English: " + answer.data['english'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.white)),
-                                          Text("Pinyin: " + answer.data['pinyin'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.white )),
-                                        ]
-                                    ));
-                              }
-                              return Container();
-                            })),
+                          child: Padding(padding: EdgeInsets.all(24),
+                            child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children:
+                            [
+                              Text("English: " + document.data['english'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.white)),
+                              Text("Pinyin: " + document.data['pinyin'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.white )),
+                            ]
+                        ))
+                            ),
                       color: color,
                     )
                   ))
@@ -105,17 +98,18 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-    FlashcardArguments arguments = ModalRoute.of(context).settings.arguments;
-    final DocumentReference ref = arguments.documentReference;
+    ScreenArguments arguments = ModalRoute.of(context).settings.arguments;
+    final String key = arguments.key;
     color = arguments.color;
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         title: const Text('中文课'),
         backgroundColor: color,
       ),
-      body: FutureBuilder<DocumentSnapshot>(
-        future: ref.get(),
+      body: FutureBuilder<QuerySnapshot>(
+        future: firestore.collection('dictionary').where('category', isEqualTo: key).getDocuments(),
         builder:(context, snapshot) {
           if( snapshot.hasData ) {
             return Column(
